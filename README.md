@@ -70,6 +70,7 @@ Installation
 1. Clone the repository
 
 git clone YOUR_GITHUB_REPOSITORY_URL
+https://github.com/Anjali2887/policy-assistant-rag
 cd policy-assistant-rag
 
 2. Create and activate a virtual environment
