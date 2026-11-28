@@ -1,16 +1,18 @@
-Policy Assistant RAG
+# Policy Assistant RAG
 
 A policy assistant that answers from bank policies and cites the exact section, or says it doesn't know.
 
-Project Overview
+## Project Overview
 
 This is a learning project that demonstrates Retrieval-Augmented Generation (RAG) using fictional Example Bank policies.
 
 The assistant retrieves relevant policy sections, provides them to a local language model, and generates answers with source citations.
 
-RAG Pipeline
+## RAG Pipeline
 
-INGESTION
+### Ingestion
+
+```text
 policies.py
     ↓
 Chunk by section + metadata
@@ -18,8 +20,11 @@ Chunk by section + metadata
 Embeddings
     ↓
 Chroma Vector Database (rag_db)
+```
 
-ANSWERING
+### Answering
+
+```text
 User Question
     ↓
 Hybrid Search (BM25 + Semantic Search)
@@ -33,9 +38,11 @@ LLM generates JSON answer
 Python validates citations
     ↓
 Answer + Sources OR Safe Fallback
+```
 
-Project Structure
+## Project Structure
 
+```text
 policy-assistant-rag/
 │
 ├── policies.py
@@ -48,112 +55,95 @@ policy-assistant-rag/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
+```
 
-Technologies Used
+## Technologies Used
 
-Python
+- Python
+- Ollama (local LLM)
+- ChromaDB
+- Pydantic
+- Requests
+- Nomic Embeddings
+- BM25 and Semantic Search
 
-Ollama (local LLM)
+## Installation
 
-ChromaDB
+### 1. Clone the repository
 
-Pydantic
-
-Requests
-
-Nomic Embeddings
-
-BM25 and Semantic Search
-
-Installation
-
-1. Clone the repository
-
+```bash
 git clone https://github.com/Anjali2887/policy-assistant-rag
 
 cd policy-assistant-rag
+```
 
-2. Create and activate a virtual environment
+### 2. Create and activate a virtual environment
 
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
 
-3. Install dependencies
+### 3. Install dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
-4. Start Ollama
+### 4. Start Ollama
 
 Make sure Ollama is running and the configured model and embedding model are available.
 
-5. Build the policy database
+### 5. Build the policy database
 
+```bash
 python rag_ingest.py
+```
 
-6. Ask questions
+### 6. Ask questions
 
+```bash
 python rag_answer.py
+```
 
-Windows users
+## Windows Users
 
-This project was tested using Ubuntu on WSL. If ChromaDB causes issues on Windows, run the Python files inside WSL Ubuntu. Ollama can continue running on Windows and can be accessed from WSL at localhost:11434, as configured in the course environment.
+This project was tested using Ubuntu on WSL. If ChromaDB causes issues on Windows, run the Python files inside WSL Ubuntu.
 
-Design Decisions
+Ollama can continue running on Windows and can be accessed from WSL at `localhost:11434`, as configured in the course environment.
 
-Chunk by section: Each policy section becomes a separate chunk, preserving its heading and metadata.
+## Design Decisions
 
-Hybrid search: Combines BM25 keyword search and semantic vector search.
+- **Chunk by section:** Each policy section becomes a separate chunk, preserving its heading and metadata.
+- **Hybrid search:** Combines BM25 keyword search and semantic vector search.
+- **Reciprocal Rank Fusion (RRF):** Combines rankings from keyword and semantic search.
+- **Citation checks:** Python verifies that cited source labels were actually retrieved.
+- **Rebuild on change:** Rebuilds the Chroma database after policy updates to avoid stale or duplicate policy versions.
+- **Grounded answers:** The model is instructed to answer only from retrieved sources and use a safe fallback when the sources do not answer the question.
 
-Reciprocal Rank Fusion (RRF): Combines rankings from keyword and semantic search.
+## Lab 3 — Evaluation Results
 
-Citation checks: Python verifies that cited source labels were actually retrieved.
+The following results were recorded from `rag_eval.py`.
 
-Rebuild on change: Rebuilds the Chroma database after policy updates to avoid stale or duplicate policy versions.
+| Search Method | Hit@3 Before | Hit@3 After |
+|---|---:|---:|
+| Keyword | 8/8 (100%) | 12/12 (100%) |
+| Semantic | 8/8 (100%) | 12/12 (100%) |
+| Hybrid | 8/8 (100%) | 12/12 (100%) |
 
-Grounded answers: The model is instructed to answer only from retrieved sources and use a safe fallback when the sources do not answer the question.
+After adding four questions—two paraphrases and two exact code/amount questions—all three search methods achieved 12/12 (100%) Hit@3.
 
-Lab 3 — Evaluation Results
+## Known Limits and Next Steps
 
-Record your actual hit@3 results from rag_eval.py.
+- No reranker has been implemented yet.
+- Citation validation checks whether a source label was retrieved; it does not automatically verify whether the source supports the answer.
+- A small local language model is used, so answer quality may vary.
+- The system can still produce an unsupported answer when a retrieved source is related but does not actually support the question.
 
-Search Method
+For example, an unauthorised UPI transaction question received an answer from the policy about money sent to the wrong person. The citation label was valid, but the answer was not supported by that source.
 
-Hit@3 Before
+**Future improvements:** Add a reranker, permission filters, an LLM judge for citation support, and monitoring.
 
-Hit@3 After
-
-Keyword
-
-Add result
-
-Add result
-
-Semantic
-
-Add result
-
-Add result
-
-Hybrid
-
-Add result
-
-Add result
-
-Replace the placeholders with your actual Lab 3 measurements.
-
-Known Limits and Next Steps
-
-No reranker has been implemented yet.
-
-Citation validation checks whether a source label was retrieved; it does not automatically verify whether the source supports the answer.
-
-A small local language model is used, so answer quality may vary.
-
-The system can still produce an unsupported answer when a retrieved source is related but does not actually support the question. For example, an unauthorised UPI transaction question received an answer from the policy about money sent to the wrong person. The citation label was valid, but the answer was not supported by that source.
-
-Future improvements: add a reranker, permission filters, an LLM judge for citation support, and monitoring.
-
-Disclaimer
+## Disclaimer
 
 This is a learning project built using fictional banking policy data. It is not a production banking system and must not be used for real banking decisions.
